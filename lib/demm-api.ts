@@ -1,5 +1,5 @@
-const BASE_URL = process.env.NEXT_PUBLIC_DEMM_API_URL || 'http://34.138.159.127:8005';
-const CLIENT_SECRET = process.env.DEMM_CLIENT_SECRET || '';
+// All API calls route through /api/* proxy routes (server-side → VM).
+// Browser never touches the GCP VM directly — no CORS or mixed-content issues.
 
 export interface CreditsResponse {
   client_id: string;
@@ -31,31 +31,22 @@ export interface RunAgentResponse {
 }
 
 export async function getCredits(clientId: string): Promise<CreditsResponse> {
-  const res = await fetch(`${BASE_URL}/credits/${clientId}`, {
-    headers: { 'X-Client-Secret': CLIENT_SECRET },
-    cache: 'no-store',
-  });
+  const res = await fetch(`/api/credits/${clientId}`, { cache: 'no-store' });
   if (!res.ok) throw new Error(`Credits fetch failed: ${res.status}`);
   return res.json();
 }
 
 export async function getRuns(clientId: string): Promise<Run[]> {
-  const res = await fetch(`${BASE_URL}/runs/${clientId}`, {
-    headers: { 'X-Client-Secret': CLIENT_SECRET },
-    cache: 'no-store',
-  });
+  const res = await fetch(`/api/runs/${clientId}`, { cache: 'no-store' });
   if (!res.ok) throw new Error(`Runs fetch failed: ${res.status}`);
   const data = await res.json();
   return data.runs || [];
 }
 
 export async function runAgent(params: RunAgentParams): Promise<RunAgentResponse> {
-  const res = await fetch(`${BASE_URL}/run`, {
+  const res = await fetch('/api/run', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Client-Secret': CLIENT_SECRET,
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(params),
   });
   if (!res.ok) {
